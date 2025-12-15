@@ -574,13 +574,38 @@ impl Client {
     ///
     /// If the order cannot be cancelled
     pub async fn cancel_order_by_client_id(&self, client_order_id: String) -> Result<()> {
-        match self
-            .request_auth::<(), ()>(
-                Method::Delete,
-                format!("/v1/orders/by_client_id/{client_order_id}"),
-            )
+        self.cancel_order_by_client_id_with_market(client_order_id, None)
             .await
-        {
+    }
+
+    /// Cancel an order on the exchange by client ID, optionally scoped to a market.
+    ///
+    /// This maps to `DELETE /v1/orders/by_client_id/{client_id}` with optional `?market=...`.
+    ///
+    /// # Parameters
+    ///
+    /// * `client_order_id` - A string representing the client order ID to be cancelled
+    /// * `market` - Optional market symbol to scope the cancel request
+    ///
+    /// # Returns
+    ///
+    /// A Result indicating success or failure
+    ///
+    /// # Errors
+    ///
+    /// If the order cannot be cancelled
+    pub async fn cancel_order_by_client_id_with_market(
+        &self,
+        client_order_id: String,
+        market: Option<String>,
+    ) -> Result<()> {
+        let path = if let Some(market) = market {
+            format!("/v1/orders/by_client_id/{client_order_id}?market={market}")
+        } else {
+            format!("/v1/orders/by_client_id/{client_order_id}")
+        };
+
+        match self.request_auth::<(), ()>(Method::Delete, path).await {
             Ok(_) => Ok(()),
             Err(Error::RestEmptyResponse) => Ok(()),
             Err(e) => Err(e),
