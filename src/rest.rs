@@ -795,7 +795,7 @@ impl Client {
         let filters = filters.unwrap_or_default();
         loop {
             let mut params: Vec<(String, String)> =
-                vec![("page_size".to_string(), "5000".to_string())];
+                vec![("page_size".to_string(), "1000".to_string())];
             params.extend(filters.iter().cloned());
             if let Some(start_time) = start {
                 params.push((
