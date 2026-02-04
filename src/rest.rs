@@ -737,6 +737,19 @@ impl Client {
             .await
     }
 
+    /// Fetch a single page of fills with cursor-based pagination.
+    pub async fn fills_page(
+        &self,
+        market: Option<String>,
+        page_size: Option<u32>,
+        cursor: Option<String>,
+    ) -> Result<CursorResult<Fill>> {
+        let filters = market.map(|market| vec![("market".to_string(), market)]);
+
+        self.request_cursor_page("/v1/fills".to_string(), filters, page_size, cursor, true)
+            .await
+    }
+
     pub async fn transfers(
         &self,
         status: Option<TransferStatus>,
@@ -828,6 +841,35 @@ impl Client {
             }
         }
         Ok(result)
+    }
+
+    /// Perform a single-page cursor-based REST API request.
+    ///
+    /// Unlike `request_cursor`, this does NOT auto-paginate. It returns a single
+    /// page of results along with the cursor for the next page.
+    pub async fn request_cursor_page<T: for<'de> serde::Deserialize<'de>>(
+        &self,
+        path: String,
+        filters: Option<Vec<(String, String)>>,
+        page_size: Option<u32>,
+        cursor: Option<String>,
+        use_auth: bool,
+    ) -> Result<CursorResult<T>> {
+        let mut params: Vec<(String, String)> = vec![(
+            "page_size".to_string(),
+            page_size.unwrap_or(100).to_string(),
+        )];
+        if let Some(filters) = filters {
+            params.extend(filters);
+        }
+        if let Some(token) = cursor {
+            params.push(("cursor".to_string(), token));
+        }
+        if use_auth {
+            self.request_auth(Method::Get::<()>(params), path).await
+        } else {
+            self.request(Method::Get::<()>(params), path, None).await
+        }
     }
 
     /// Perform a REST API request with authentication headers
