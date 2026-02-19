@@ -302,6 +302,7 @@ pub enum OptionType {
 pub enum AssetKind {
     Perp,
     PerpOption,
+    Spot,
 }
 
 /// Market kind (margin type)
