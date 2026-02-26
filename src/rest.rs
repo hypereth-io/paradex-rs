@@ -27,7 +27,7 @@ use crate::structs::{
     AccountMarginUpdateResponse, BBO, Balances, CancelByMarketResponse, CursorResult, Fill,
     FundingPayment, JWTToken, Kline, KlineParams, MarketStatic, MarketSummary, ModifyOrderRequest,
     OrderBookInteractiveResponse, OrderBookParams, OrderBookResponse, OrderRequest, OrderUpdate,
-    OrderUpdates, Positions, RestError, ResultsContainer, SystemConfig, SystemState,
+    OrderUpdates, OrdersHistoryParams, Positions, RestError, ResultsContainer, SystemConfig, SystemState,
     SystemTimeResponse, Trade, Transfer, TransferStatus,
 };
 use crate::url::URL;
@@ -658,6 +658,37 @@ impl Client {
     /// If open orders cannot be retrieved
     pub async fn open_orders(&self) -> Result<OrderUpdates> {
         self.request_auth(Method::Get::<()>(vec![]), "/v1/orders".into())
+            .await
+    }
+
+    /// Get order history (all orders including closed)
+    ///
+    /// # Parameters
+    ///
+    /// * `params` - Optional filters for the orders history query
+    /// * `start` - Optional start time filter
+    /// * `end` - Optional end time filter
+    ///
+    /// # Returns
+    ///
+    /// A vector of OrderUpdate structs representing the orders
+    ///
+    /// # Errors
+    ///
+    /// If orders history cannot be retrieved
+    pub async fn orders_history(
+        &self,
+        params: OrdersHistoryParams,
+        start: Option<chrono::DateTime<chrono::Utc>>,
+        end: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> Result<Vec<OrderUpdate>> {
+        let filters: Vec<(String, String)> = params.into();
+        let filters = if filters.is_empty() {
+            None
+        } else {
+            Some(filters)
+        };
+        self.request_cursor("/v1/orders-history".to_string(), filters, start, end, true)
             .await
     }
 

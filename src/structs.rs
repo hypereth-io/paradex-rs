@@ -964,6 +964,37 @@ pub struct ModifyOrder {
     pub order_type: OrderType,
 }
 
+#[derive(Clone, Debug, Default)]
+pub struct OrdersHistoryParams {
+    pub market: Option<String>,
+    pub side: Option<Side>,
+    pub status: Option<OrderStatus>,
+    pub order_type: Option<OrderType>,
+    pub client_id: Option<String>,
+}
+
+impl From<OrdersHistoryParams> for Vec<(String, String)> {
+    fn from(params: OrdersHistoryParams) -> Self {
+        let mut vec = Vec::new();
+        if let Some(market) = params.market {
+            vec.push(("market".to_string(), market));
+        }
+        if let Some(side) = params.side {
+            vec.push(("side".to_string(), format!("{:?}", side)));
+        }
+        if let Some(status) = params.status {
+            vec.push(("status".to_string(), format!("{:?}", status)));
+        }
+        if let Some(order_type) = params.order_type {
+            vec.push(("type".to_string(), format!("{:?}", order_type)));
+        }
+        if let Some(client_id) = params.client_id {
+            vec.push(("client_id".to_string(), client_id));
+        }
+        vec
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OrderUpdate {
     pub account: String,
