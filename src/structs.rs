@@ -300,6 +300,7 @@ pub enum OptionType {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum AssetKind {
+    Option,
     Perp,
     PerpOption,
     Spot,
